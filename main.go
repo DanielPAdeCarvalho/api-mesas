@@ -4,6 +4,7 @@ import (
 	"log"
 	"mesas-api/driver"
 	"mesas-api/logging"
+	"mesas-api/models"
 	"mesas-api/routers"
 	"net/http"
 	"os"
@@ -43,6 +44,39 @@ func setupRouter() *gin.Engine {
 		numero, err := strconv.Atoi(numeroStr)
 		logging.Check(err, logs)
 		routers.GetMesa(int(numero), c, dynamoClient, logs)
+	})
+
+	//Adicionar um cliente a uma mesa
+	apiRouter.PUT("/mesa", func(c *gin.Context) {
+		var mesa models.Mesa
+		err := c.BindJSON(&mesa)
+		logging.Check(err, logs)
+		routers.PutMesa(mesa, c, dynamoClient, logs)
+	})
+
+	//Novo pedido para a mesa
+	apiRouter.POST("/mesa/:numero", func(c *gin.Context) {
+		numeroStr := c.Param("numero")
+		numero, err := strconv.Atoi(numeroStr)
+		logging.Check(err, logs)
+		routers.PostPedido(numero, c, dynamoClient, logs)
+	})
+
+	//Remover um pedido da mesa
+	apiRouter.DELETE("/mesa/:numero/:pedido", func(c *gin.Context) {
+		numeroStr := c.Param("numero")
+		numero, err := strconv.Atoi(numeroStr)
+		logging.Check(err, logs)
+		pedido := c.Param("pedido")
+		routers.DeletePedido(numero, pedido, c, dynamoClient, logs)
+	})
+
+	//Remover um cliente da mesa
+	apiRouter.DELETE("/mesa/:numero", func(c *gin.Context) {
+		numeroStr := c.Param("numero")
+		numero, err := strconv.Atoi(numeroStr)
+		logging.Check(err, logs)
+		routers.DeleteMesa(numero, c, dynamoClient, logs)
 	})
 	return apiRouter
 }

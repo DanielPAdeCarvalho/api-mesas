@@ -51,3 +51,16 @@ func SelectMesa(mesaId int, dynamoClient *dynamodb.Client, log logging.Logfile) 
 
 	return mesa
 }
+
+// UpdateMesa updates the data from a Mesa struct in the DynamoDB table Mesas
+func UpdateMesa(mesa models.Mesa, dynamoClient *dynamodb.Client, log logging.Logfile) {
+	item, err := attributevalue.MarshalMap(mesa)
+	logging.Check(err, log)
+
+	input := &dynamodb.PutItemInput{
+		TableName: aws.String("Mesas"),
+		Item:      item,
+	}
+	_, err = dynamoClient.PutItem(context.Background(), input)
+	logging.Check(err, log)
+}
