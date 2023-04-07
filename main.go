@@ -8,7 +8,6 @@ import (
 	"mesas-api/routers"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/apex/gateway"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -39,11 +38,9 @@ func setupRouter() *gin.Engine {
 		routers.GetAllMesas(c, dynamoClient, logs)
 	})
 
-	apiRouter.GET("/mesa/:numero", func(c *gin.Context) {
-		numeroStr := c.Param("numero")
-		numero, err := strconv.Atoi(numeroStr)
-		logging.Check(err, logs)
-		routers.GetMesa(int(numero), c, dynamoClient, logs)
+	apiRouter.GET("/mesa/:id", func(c *gin.Context) {
+		numeroStr := c.Param("id")
+		routers.GetMesa(numeroStr, c, dynamoClient, logs)
 	})
 
 	//Adicionar um cliente a uma mesa
@@ -55,40 +52,35 @@ func setupRouter() *gin.Engine {
 	})
 
 	//Novo pedido para a mesa
-	apiRouter.POST("/mesa/:numero", func(c *gin.Context) {
-		numeroStr := c.Param("numero")
-		numero, err := strconv.Atoi(numeroStr)
-		logging.Check(err, logs)
-		routers.PostPedido(numero, c, dynamoClient, logs)
+	apiRouter.POST("/mesa/:id", func(c *gin.Context) {
+		numeroStr := c.Param("id")
+		routers.PostPedido(numeroStr, c, dynamoClient, logs)
 	})
 
 	//Remover um pedido da mesa
-	apiRouter.DELETE("/mesa/:numero/:pedido", func(c *gin.Context) {
-		numeroStr := c.Param("numero")
-		numero, err := strconv.Atoi(numeroStr)
-		logging.Check(err, logs)
+	apiRouter.DELETE("/mesa/:id/:pedido", func(c *gin.Context) {
+		numeroStr := c.Param("id")
 		pedido := c.Param("pedido")
-		routers.DeletePedido(numero, pedido, c, dynamoClient, logs)
+		routers.DeletePedido(numeroStr, pedido, c, dynamoClient, logs)
 	})
 
 	//Remover um cliente da mesa
-	apiRouter.DELETE("/mesa/:numero", func(c *gin.Context) {
-		numeroStr := c.Param("numero")
-		numero, err := strconv.Atoi(numeroStr)
-		logging.Check(err, logs)
-		routers.DeleteMesa(numero, c, dynamoClient, logs)
+	apiRouter.DELETE("/mesa/:id", func(c *gin.Context) {
+		numeroStr := c.Param("id")
+		routers.DeleteMesa(numeroStr, c, dynamoClient, logs)
 	})
 	return apiRouter
 }
 
 // Para compilar o binario do sistema usamos:
 //
-//	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o assinatura-api .
+//	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o mesas-api .
 //
 // para criar o zip do projeto comando:
 //
-// zip lambda.zip assinatura-api
-// .
+// zip lambda.zip mesas-api
+//
+// main.go
 func main() {
 	InfoLogger := log.New(os.Stdout, " ", log.LstdFlags|log.Lshortfile)
 	ErrorLogger := log.New(os.Stdout, " ", log.LstdFlags|log.Lshortfile)

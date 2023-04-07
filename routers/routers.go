@@ -14,8 +14,8 @@ func ResponseOK(c *gin.Context, log logging.Logfile) {
 	c.IndentedJSON(http.StatusOK, "Servidor up")
 }
 
-func GetMesa(numero int, c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
-	mesa := query.SelectMesa(numero, dynamoClient, log)
+func GetMesa(id string, c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
+	mesa := query.SelectMesa(id, dynamoClient, log)
 	c.IndentedJSON(http.StatusOK, mesa)
 }
 
@@ -31,12 +31,12 @@ func PutMesa(mesa models.Mesa, c *gin.Context, dynamoClient *dynamodb.Client, lo
 }
 
 // Cria um novo pedido para uma mesa
-func PostPedido(numero int, c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
+func PostPedido(id string, c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
 	var pedido models.Pedido
 	err := c.BindJSON(&pedido)
 	logging.Check(err, log)
 
-	mesa := query.SelectMesa(numero, dynamoClient, log)
+	mesa := query.SelectMesa(id, dynamoClient, log)
 
 	// Get the mesa from the database and create the Pedidos map if it's nil
 	if mesa.Pedidos == nil {
@@ -45,10 +45,13 @@ func PostPedido(numero int, c *gin.Context, dynamoClient *dynamodb.Client, log l
 		mesa.Pedidos[pedido.Nome] = pedido
 	} else {
 		// Check if the pedido already exists
-		if pedidoTmp, ok := mesa.Pedidos[pedido.Nome]; ok {
+		pedidoTmp, ok := mesa.Pedidos[pedido.Nome]
+		if ok {
+			// If it does, increment the quantity
 			pedidoTmp.Quantidade++
 			mesa.Pedidos[pedido.Nome] = pedidoTmp
 		} else {
+			// If it doesn't, create a new pedido
 			pedido.Quantidade = 1
 			mesa.Pedidos[pedido.Nome] = pedido
 		}
@@ -59,9 +62,9 @@ func PostPedido(numero int, c *gin.Context, dynamoClient *dynamodb.Client, log l
 }
 
 // Remove um pedido de uma mesa
-func DeletePedido(numero int, nomePedido string, c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
+func DeletePedido(id string, nomePedido string, c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
 	// Get the mesa from the database
-	mesa := query.SelectMesa(numero, dynamoClient, log)
+	mesa := query.SelectMesa(id, dynamoClient, log)
 	// Remove the pedido from the mesa
 	if pedido, ok := mesa.Pedidos[nomePedido]; ok {
 		if pedido.Quantidade > 1 {
@@ -79,9 +82,9 @@ func DeletePedido(numero int, nomePedido string, c *gin.Context, dynamoClient *d
 }
 
 // Remove um cliente de uma mesa
-func DeleteMesa(numero int, c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
+func DeleteMesa(id string, c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
 	// Get the mesa from the database
-	mesa := query.SelectMesa(numero, dynamoClient, log)
+	mesa := query.SelectMesa(id, dynamoClient, log)
 	// Remove the pedido from the mesa
 	mesa.Cliente = ""
 	mesa.Pedidos = nil

@@ -1,7 +1,7 @@
 package models
 
 type Mesa struct {
-	Numero  int               `json:"id"`
+	Id      string            `json:"id"`
 	Cliente string            `json:"cliente"`
 	Pedidos map[string]Pedido `json:"pedidos"`
 }

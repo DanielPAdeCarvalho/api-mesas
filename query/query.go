@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-// SelectAllMesas returns a slice of Mesa structs with the data from the DynamoDB table Mesas
+// SelectAllMesas retorna todas as mesas que estao ocupadas
 func SelectAllMesas(dynamoClient *dynamodb.Client, log logging.Logfile) []models.Mesa {
 	input := &dynamodb.ScanInput{
 		TableName: aws.String("Mesas"),
@@ -32,9 +32,9 @@ func SelectAllMesas(dynamoClient *dynamodb.Client, log logging.Logfile) []models
 }
 
 // SelectMesa returns a Mesa struct with the data from the DynamoDB table Mesas
-func SelectMesa(mesaId int, dynamoClient *dynamodb.Client, log logging.Logfile) models.Mesa {
+func SelectMesa(mesaId string, dynamoClient *dynamodb.Client, log logging.Logfile) models.Mesa {
 	key, err := attributevalue.MarshalMap(map[string]interface{}{
-		"Numero": mesaId,
+		"Id": mesaId,
 	})
 	logging.Check(err, log)
 
