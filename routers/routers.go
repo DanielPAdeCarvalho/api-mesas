@@ -24,6 +24,11 @@ func GetAllMesas(c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logf
 	c.IndentedJSON(http.StatusOK, mesas)
 }
 
+func GetCardapio(c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
+	cardapio := query.SelectCardapio(dynamoClient, log)
+	c.IndentedJSON(http.StatusOK, cardapio)
+}
+
 // Associa um novo cliente a uma mesa no banco
 func PutMesa(mesa models.Mesa, c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
 	query.UpdateMesa(mesa, dynamoClient, log)

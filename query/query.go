@@ -4,6 +4,7 @@ import (
 	"context"
 	"mesas-api/logging"
 	"mesas-api/models"
+	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -50,6 +51,26 @@ func SelectMesa(mesaId string, dynamoClient *dynamodb.Client, log logging.Logfil
 	logging.Check(err, log)
 
 	return mesa
+}
+
+// SelectCardapio returns a slice of Cardapio structs with the data from the DynamoDB table Cardapio
+func SelectCardapio(dynamoClient *dynamodb.Client, log logging.Logfile) []models.Cardapio {
+	input := &dynamodb.ScanInput{
+		TableName: aws.String("Cardapio"),
+	}
+	result, err := dynamoClient.Scan(context.Background(), input)
+	logging.Check(err, log)
+	var cardapio []models.Cardapio
+	for _, item := range result.Items {
+		var itemCardapio models.Cardapio
+		err = attributevalue.UnmarshalMap(item, &itemCardapio)
+		logging.Check(err, log)
+		cardapio = append(cardapio, itemCardapio)
+	}
+	sort.Slice(cardapio, func(i, j int) bool {
+		return cardapio[i].Nome < cardapio[j].Nome
+	})
+	return cardapio
 }
 
 // UpdateMesa updates the data from a Mesa struct in the DynamoDB table Mesas

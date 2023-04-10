@@ -43,6 +43,10 @@ func setupRouter() *gin.Engine {
 		routers.GetMesa(numeroStr, c, dynamoClient, logs)
 	})
 
+	apiRouter.GET("/cardapio", func(c *gin.Context) {
+		routers.GetCardapio(c, dynamoClient, logs)
+	})
+
 	//Adicionar um cliente a uma mesa
 	apiRouter.PUT("/mesa", func(c *gin.Context) {
 		var mesa models.Mesa
