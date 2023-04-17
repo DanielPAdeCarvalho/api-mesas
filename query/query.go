@@ -85,3 +85,5 @@ func UpdateMesa(mesa models.Mesa, dynamoClient *dynamodb.Client, log logging.Log
 	_, err = dynamoClient.PutItem(context.Background(), input)
 	logging.Check(err, log)
 }
+
+// DeletePedido deletes a Pedido struct from the DynamoDB table Pedidos
