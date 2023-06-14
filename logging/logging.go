@@ -3,8 +3,8 @@ package logging
 import "log"
 
 type Logfile struct {
-	ErrorLogger log.Logger
-	InfoLogger  log.Logger
+	ErrorLogger *log.Logger
+	InfoLogger  *log.Logger
 }
 
 func Check(erro error, loggin Logfile) {
