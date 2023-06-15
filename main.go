@@ -89,8 +89,8 @@ func main() {
 	InfoLogger := log.New(os.Stdout, " ", log.LstdFlags|log.Lshortfile)
 	ErrorLogger := log.New(os.Stdout, " ", log.LstdFlags|log.Lshortfile)
 
-	logs.InfoLogger = *InfoLogger
-	logs.ErrorLogger = *ErrorLogger
+	logs.InfoLogger = InfoLogger
+	logs.ErrorLogger = ErrorLogger
 	var err error
 	// chamada de função para a criação da sessao de login com o banco
 	dynamoClient, err = driver.ConfigAws()
