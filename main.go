@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"mesas-api/driver"
+	"mesas-api/events"
 	"mesas-api/logging"
 	"mesas-api/models"
 	"mesas-api/routers"
@@ -11,12 +12,14 @@ import (
 
 	"github.com/apex/gateway"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/gin-gonic/gin"
 )
 
 var (
 	dynamoClient *dynamodb.Client
 	logs         logging.Logfile
+	clienteSQS   *sqs.Client
 )
 
 func inLambda() bool {
@@ -58,7 +61,7 @@ func setupRouter() *gin.Engine {
 	//Novo pedido para a mesa
 	apiRouter.POST("/mesa/:id", func(c *gin.Context) {
 		numeroStr := c.Param("id")
-		routers.PostPedido(numeroStr, c, dynamoClient, logs)
+		routers.PostPedido(numeroStr, c, dynamoClient, clienteSQS, logs)
 	})
 
 	//Remover um pedido da mesa
@@ -89,13 +92,16 @@ func main() {
 	InfoLogger := log.New(os.Stdout, " ", log.LstdFlags|log.Lshortfile)
 	ErrorLogger := log.New(os.Stdout, " ", log.LstdFlags|log.Lshortfile)
 
-	logs.InfoLogger = *InfoLogger
-	logs.ErrorLogger = *ErrorLogger
+	logs.InfoLogger = InfoLogger
+	logs.ErrorLogger = ErrorLogger
 	var err error
 	// chamada de função para a criação da sessao de login com o banco
 	dynamoClient, err = driver.ConfigAws()
 	//chamada da função para revificar o erro retornado
 	logging.Check(err, logs)
+
+	//Criar o cliente do SQS
+	clienteSQS = events.CreateClient(logs)
 
 	if inLambda() {
 

@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,7 +37,7 @@ func PutMesa(mesa models.Mesa, c *gin.Context, dynamoClient *dynamodb.Client, lo
 }
 
 // Cria um novo pedido para uma mesa
-func PostPedido(id string, c *gin.Context, dynamoClient *dynamodb.Client, log logging.Logfile) {
+func PostPedido(id string, c *gin.Context, dynamoClient *dynamodb.Client, clienteSQS *sqs.Client, log logging.Logfile) {
 	var pedido models.Pedido
 	err := c.BindJSON(&pedido)
 	logging.Check(err, log)
@@ -63,6 +64,9 @@ func PostPedido(id string, c *gin.Context, dynamoClient *dynamodb.Client, log lo
 	}
 	// Add the pedido to the mesa
 	query.UpdateMesa(mesa, dynamoClient, log)
+
+	//Envia o pedido para a cozinha
+
 	c.IndentedJSON(http.StatusOK, "Pedido adicionado")
 }
 
