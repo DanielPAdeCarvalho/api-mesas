@@ -1,0 +1,3 @@
+# config.yaml
+credentialsFilePath: "driver/data/credentials.aws"
+configFilePath: "driver/data/config.aws"

@@ -3,8 +3,8 @@ package events
 import (
 	"context"
 	"mesas-api/filas"
-	"mesas-api/logging"
-	"mesas-api/models"
+	"mesas-api/pkg/logging"
+	"mesas-api/pkg/models"
 
 	"encoding/json"
 

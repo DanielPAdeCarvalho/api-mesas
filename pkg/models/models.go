@@ -10,6 +10,7 @@ type Pedido struct {
 	Nome       string  `json:"nome"`
 	Preco      float64 `json:"preco"`
 	Quantidade int     `json:"quantidade"`
+	Cozinha    bool    `json:"cozinha"`
 }
 
 type Cardapio struct {

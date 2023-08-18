@@ -2,11 +2,11 @@ package main
 
 import (
 	"log"
-	"mesas-api/driver"
-	"mesas-api/events"
-	"mesas-api/logging"
-	"mesas-api/models"
-	"mesas-api/routers"
+	"mesas-api/pkg/driver"
+	"mesas-api/pkg/events"
+	"mesas-api/pkg/logging"
+	"mesas-api/pkg/models"
+	"mesas-api/pkg/routers"
 	"net/http"
 	"os"
 
@@ -18,8 +18,8 @@ import (
 
 var (
 	dynamoClient *dynamodb.Client
-	logs         logging.Logfile
-	clienteSQS   *sqs.Client
+	Logs         logging.Logger
+	ClienteSQS   *sqs.Client
 )
 
 func inLambda() bool {
@@ -33,48 +33,48 @@ func setupRouter() *gin.Engine {
 	apiRouter := gin.Default()
 
 	apiRouter.GET("/", func(ctx *gin.Context) {
-		logs.InfoLogger.Println("Servidor Ok")
-		routers.ResponseOK(ctx, logs)
+		Logs.HandleError("I", "Servidor Ok", nil)
+		routers.ResponseOK(ctx)
 	})
 
 	apiRouter.GET("/mesas", func(c *gin.Context) {
-		routers.GetAllMesas(c, dynamoClient, logs)
+		routers.GetAllMesas(c, dynamoClient)
 	})
 
 	apiRouter.GET("/mesa/:id", func(c *gin.Context) {
 		numeroStr := c.Param("id")
-		routers.GetMesa(numeroStr, c, dynamoClient, logs)
+		routers.GetMesa(numeroStr, c, dynamoClient)
 	})
 
 	apiRouter.GET("/cardapio", func(c *gin.Context) {
-		routers.GetCardapio(c, dynamoClient, logs)
+		routers.GetCardapio(c, dynamoClient)
 	})
 
 	//Adicionar um cliente a uma mesa
 	apiRouter.PUT("/mesa", func(c *gin.Context) {
 		var mesa models.Mesa
 		err := c.BindJSON(&mesa)
-		logging.Check(err, logs)
-		routers.PutMesa(mesa, c, dynamoClient, logs)
+		logging.Check(err, Logs)
+		routers.PutMesa(mesa, c, dynamoClient)
 	})
 
 	//Novo pedido para a mesa
 	apiRouter.POST("/mesa/:id", func(c *gin.Context) {
 		numeroStr := c.Param("id")
-		routers.PostPedido(numeroStr, c, dynamoClient, clienteSQS, logs)
+		routers.PostPedido(numeroStr, c, dynamoClient)
 	})
 
 	//Remover um pedido da mesa
 	apiRouter.DELETE("/mesa/:id/:pedido", func(c *gin.Context) {
 		numeroStr := c.Param("id")
 		pedido := c.Param("pedido")
-		routers.DeletePedido(numeroStr, pedido, c, dynamoClient, logs)
+		routers.DeletePedido(numeroStr, pedido, c, dynamoClient)
 	})
 
 	//Remover um cliente da mesa
 	apiRouter.DELETE("/mesa/:id", func(c *gin.Context) {
 		numeroStr := c.Param("id")
-		routers.DeleteMesa(numeroStr, c, dynamoClient, logs)
+		routers.DeleteMesa(numeroStr, c, dynamoClient)
 	})
 	return apiRouter
 }
@@ -92,16 +92,16 @@ func main() {
 	InfoLogger := log.New(os.Stdout, " ", log.LstdFlags|log.Lshortfile)
 	ErrorLogger := log.New(os.Stdout, " ", log.LstdFlags|log.Lshortfile)
 
-	logs.InfoLogger = InfoLogger
-	logs.ErrorLogger = ErrorLogger
+	Logs.InfoLogger = InfoLogger
+	Logs.ErrorLogger = ErrorLogger
 	var err error
 	// chamada de função para a criação da sessao de login com o banco
 	dynamoClient, err = driver.ConfigAws()
 	//chamada da função para revificar o erro retornado
-	logging.Check(err, logs)
+	logging.HandleError(err, Logs)
 
 	//Criar o cliente do SQS
-	clienteSQS = events.CreateClient(logs)
+	ClienteSQS = events.CreateClient(Logs)
 
 	if inLambda() {
 

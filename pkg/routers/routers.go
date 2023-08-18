@@ -1,9 +1,9 @@
 package routers
 
 import (
-	"mesas-api/logging"
-	"mesas-api/models"
-	"mesas-api/query"
+	"mesas-api/pkg/logging"
+	"mesas-api/pkg/models"
+	"mesas-api/pkg/query"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -65,7 +65,10 @@ func PostPedido(id string, c *gin.Context, dynamoClient *dynamodb.Client, client
 	// Add the pedido to the mesa
 	query.UpdateMesa(mesa, dynamoClient, log)
 
-	//Envia o pedido para a cozinha
+	//Envia o pedido para a cozinha fila PedidosCozinha
+	if pedido.Cozinha == true {
+
+	}
 
 	c.IndentedJSON(http.StatusOK, "Pedido adicionado")
 }
