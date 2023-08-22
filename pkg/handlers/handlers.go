@@ -18,8 +18,8 @@ type Handlers struct {
 	log          *logging.Logger
 }
 
-func NewHandlers(dynamoClient driver.DynamoDBClient, log *logging.Logger) *Handlers {
-	return &Handlers{dynamoClient: &dynamoClient, log: log}
+func NewHandlers(dynamoClient *driver.DynamoDBClient, clienteSQS *events.SQSClient, log *logging.Logger) *Handlers {
+	return &Handlers{dynamoClient: dynamoClient, clienteSQS: clienteSQS, log: log}
 }
 
 func (h *Handlers) ResponseOK(c *gin.Context) {
@@ -111,8 +111,9 @@ func (h *Handlers) PostPedido(c *gin.Context) {
 
 	//Envia o pedido para a cozinha fila PedidosCozinha
 	if pedido.Cozinha == true {
+		queryURL := ""
 		// Fazer a logica do envio para a tela de cozinha aqui
-		h.clienteSQS.SendPedido(context.Background(), quereURL, pedido)
+		h.clienteSQS.SendPedido(context.Background(), queryURL, pedido)
 	}
 
 	c.IndentedJSON(http.StatusOK, "Pedido adicionado")
