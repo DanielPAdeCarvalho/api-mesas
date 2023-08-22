@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"mesas-api/pkg/driver"
+	"mesas-api/pkg/events"
 	"mesas-api/pkg/logging"
 	"mesas-api/pkg/models"
 	"mesas-api/pkg/query"
@@ -11,12 +13,13 @@ import (
 )
 
 type Handlers struct {
-	dynamoClient driver.DynamoDBClient
+	dynamoClient *driver.DynamoDBClient
+	clienteSQS   *events.SQSClient
 	log          *logging.Logger
 }
 
 func NewHandlers(dynamoClient driver.DynamoDBClient, log *logging.Logger) *Handlers {
-	return &Handlers{dynamoClient: dynamoClient, log: log}
+	return &Handlers{dynamoClient: &dynamoClient, log: log}
 }
 
 func (h *Handlers) ResponseOK(c *gin.Context) {
@@ -109,6 +112,7 @@ func (h *Handlers) PostPedido(c *gin.Context) {
 	//Envia o pedido para a cozinha fila PedidosCozinha
 	if pedido.Cozinha == true {
 		// Fazer a logica do envio para a tela de cozinha aqui
+		h.clienteSQS.SendPedido(context.Background(), quereURL, pedido)
 	}
 
 	c.IndentedJSON(http.StatusOK, "Pedido adicionado")

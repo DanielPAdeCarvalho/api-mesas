@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"mesas-api/pkg/logging"
-	"mesas-api/pkg/query"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"

@@ -2,15 +2,15 @@ package routers
 
 import (
 	"mesas-api/pkg/driver"
+	"mesas-api/pkg/events"
 	"mesas-api/pkg/handlers"
 	"mesas-api/pkg/logging"
 
-	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(dynamoClient driver.DynamoDBClient, clienteSQS *sqs.Client, log *logging.Logger) *gin.Engine {
-	handlers := handlers.NewHandlers(dynamoClient, log)
+func SetupRouter(dynamoClient *driver.DynamoDBClient, clienteSQS *events.SQSClient, log *logging.Logger) *gin.Engine {
+	handlers := handlers.NewHandlers(dynamoClient, clienteSQS, log)
 
 	router := gin.Default()
 

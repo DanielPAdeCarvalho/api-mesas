@@ -10,45 +10,46 @@ import (
 	"os"
 
 	"github.com/apex/gateway"
-	"github.com/aws/aws-sdk-go-v2/service/sqs"
-	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	dynamoClient *driver.DynamoDBClient
-	Logs         *logging.Logger
-	ClienteSQS   *sqs.Client
-)
-
 func main() {
-	// Set log level as required
-	logs := logging.NewLogger(logrus.InfoLevel)
+	// Set log level from environment or config
+	logLevel := logrus.InfoLevel
+	if level, err := logrus.ParseLevel(os.Getenv("LOG_LEVEL")); err == nil {
+		logLevel = level
+	}
+	logs := logging.NewLogger(logLevel)
 
-	var err error
-	dynamoClient, err = driver.ConfigAws(context.Background())
-	logs.HandleError("E", "Failed to configure AWS", err)
+	dynamoClient, err := driver.ConfigAws(context.Background())
+	if err != nil {
+		logs.HandleError("F", "Failed to configure AWS", err)
+		return
+	}
 
-	ClienteSQS, err = events.CreateClient(context.Background(), logs)
+	ClienteSQS, err := events.NewSQSClient(context.Background(), logs)
+	if err != nil {
+		logs.HandleError("F", "Failed to configure SQS", err)
+		return
+	}
 
-	router := setupRouter()
+	router := routers.SetupRouter(dynamoClient, ClienteSQS, logs)
+
+	serverPort := os.Getenv("SERVER_PORT")
+	if serverPort == "" {
+		serverPort = ":8080" // Default port
+	}
 
 	if isRunningInLambda() {
-		logs.HandleError("E", "Failed to start server", gateway.ListenAndServe(":8080", router))
+		logs.HandleError("E", "Failed to start server", gateway.ListenAndServe(serverPort, router))
 	} else {
-		logs.HandleError("E", "Failed to start server", http.ListenAndServe(":8080", router))
+		logs.HandleError("E", "Failed to start server", http.ListenAndServe(serverPort, router))
 	}
 }
 
 // isRunningInLambda checks if the application is running within a Lambda environment.
 func isRunningInLambda() bool {
 	return os.Getenv("LAMBDA_TASK_ROOT") != ""
-}
-
-// setupRouter initializes the router and defines the routes for the application.
-func setupRouter() *gin.Engine {
-	router := routers.SetupRouter(dynamoClient, ClienteSQS, Logs)
-	return router
 }
 
 // Para compilar o binario do sistema usamos:
