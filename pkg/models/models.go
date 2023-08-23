@@ -14,8 +14,9 @@ type Pedido struct {
 }
 
 type Cardapio struct {
-	Nome  string  `json:"nome"`
-	Preco float64 `json:"preco"`
+	Nome    string  `json:"nome"`
+	Preco   float64 `json:"preco"`
+	Cozinha bool    `json:"cozinha"`
 }
 
 type PedidoCozinha struct {
