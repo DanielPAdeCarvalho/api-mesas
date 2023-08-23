@@ -17,3 +17,8 @@ type Cardapio struct {
 	Nome  string  `json:"nome"`
 	Preco float64 `json:"preco"`
 }
+
+type PedidoCozinha struct {
+	Item string `json:"item"`
+	Nome string `json:"nome"`
+}

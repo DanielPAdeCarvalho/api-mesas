@@ -16,12 +16,9 @@ import (
 func main() {
 	// Set log level from environment or config
 	logLevel := logrus.InfoLevel
-	if level, err := logrus.ParseLevel(os.Getenv("LOG_LEVEL")); err == nil {
-		logLevel = level
-	}
 	logs := logging.NewLogger(logLevel)
 
-	dynamoClient, err := driver.ConfigAws(context.Background())
+	dynamoClient, err := driver.NewDynamoClient(context.Background(), logs)
 	if err != nil {
 		logs.HandleError("F", "Failed to configure AWS", err)
 		return
@@ -35,10 +32,7 @@ func main() {
 
 	router := routers.SetupRouter(dynamoClient, ClienteSQS, logs)
 
-	serverPort := os.Getenv("SERVER_PORT")
-	if serverPort == "" {
-		serverPort = ":8080" // Default port
-	}
+	serverPort := ":8080" // Default port
 
 	if isRunningInLambda() {
 		logs.HandleError("E", "Failed to start server", gateway.ListenAndServe(serverPort, router))
@@ -60,4 +54,3 @@ func isRunningInLambda() bool {
 //
 // zip lambda.zip mesas-api
 //
-// main.go

@@ -110,10 +110,16 @@ func (h *Handlers) PostPedido(c *gin.Context) {
 	query.UpdateMesa(c.Request.Context(), mesa, h.dynamoClient.Client, h.log)
 
 	//Envia o pedido para a cozinha fila PedidosCozinha
-	if pedido.Cozinha == true {
-		queryURL := ""
+	if pedido.Cozinha {
 		// Fazer a logica do envio para a tela de cozinha aqui
-		h.clienteSQS.SendPedido(context.Background(), queryURL, pedido)
+		item := models.PedidoCozinha{
+			Item: pedido.Nome,
+			Nome: mesa.Cliente,
+		}
+		h.clienteSQS.SendPedido(context.Background(), item)
+	} else {
+		// Logica de envio de pedidos que nao vao para cozinha para a fila de pedidos prontos
+		h.clienteSQS.PedidoPronto(context.Background(), pedido.Nome)
 	}
 
 	c.IndentedJSON(http.StatusOK, "Pedido adicionado")
